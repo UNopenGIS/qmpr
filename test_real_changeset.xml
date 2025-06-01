@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="openstreetmap-cgimap 2.0.1 (2514268 spike-07.openstreetmap.org)" copyright="OpenStreetMap and contributors" attribution="http://www.openstreetmap.org/copyright" license="http://opendatacommons.org/licenses/odbl/1-0/">
+ <changeset id="167032691" created_at="2025-06-01T01:00:34Z" closed_at="2025-06-01T01:00:36Z" open="false" user="hfu" uid="222120" min_lat="29.5463733" min_lon="35.0344374" max_lat="29.5482177" max_lon="35.0366089" comments_count="0" changes_count="127">
+  <tag k="changesets_count" v="603"/>
+  <tag k="comment" v="add buildings"/>
+  <tag k="created_by" v="Rapid 2.5.3"/>
+  <tag k="data_used" v="mapwithai;Microsoft Buildings"/>
+  <tag k="hashtags" v="#qmp"/>
+  <tag k="host" v="https://rapideditor.org/edit"/>
+  <tag k="imagery_used" v="Bing Maps Aerial"/>
+  <tag k="locale" v="ja"/>
+  <tag k="source" v="aerial imagery;mapwithai"/>
+ </changeset>
+</osm>

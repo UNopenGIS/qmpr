@@ -1,0 +1,69 @@
+# QMP Ranking Generator .gitignore
+
+# Planet files (large binary files, ~7-8GB)
+# planetファイル（大容量バイナリファイル、約7-8GB）
+*.bz2
+*.osm
+*.osm.gz
+*.osm.xz
+data/changesets-latest.osm.bz2
+data/planet-latest.osm.bz2
+
+# Exception: Keep test files for development
+# 例外: 開発用テストファイルは保持
+!test_real_changeset.xml.bz2
+
+# Generated data files
+# 生成されたデータファイル
+data/changesets.jsonl
+data/*.jsonl
+data/*.csv
+data/*.json
+
+# NOTE: docs/index.md is kept in git for GitHub Pages
+# 注意: docs/index.mdはGitHub Pages用にgitで管理します
+
+# Test output files
+# テスト出力ファイル
+test_output.jsonl
+test_*.jsonl
+
+# Temporary files
+# 一時ファイル
+*.tmp
+*.temp
+*.log
+*.out
+nohup.out
+
+# System files
+# システムファイル
+.DS_Store
+Thumbs.db
+
+# Editor files
+# エディタファイル
+*~
+*.bak
+*.orig
+*.swp
+*.swo
+.vscode/settings.json
+.idea/
+
+# Ruby specific
+# Ruby固有
+*.gem
+.bundle/
+vendor/
+
+# Backup files
+# バックアップファイル
+*.backup
+*_backup
+
+# OS specific
+# OS固有
+*.lnk
+*.url
+desktop.ini
