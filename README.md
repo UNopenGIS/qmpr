@@ -1,0 +1,2 @@
+# qmpr
+🌍 QMP Ranking Generator
