@@ -10,10 +10,10 @@ require 'fileutils'
 
 class QMPRankingGenerator
   def initialize(options = {})
-    @days_limit = options[:days] || 30
+    # QMP開始日（2025年5月1日）以降のchangesetを対象
+    @qmp_start_date = Time.new(2025, 5, 1, 0, 0, 0, '+00:00')
     @output_format = options[:format] || 'markdown'
     @output_file = options[:output]
-    @cutoff_date = Time.now - (@days_limit * 24 * 60 * 60)
     @users = Hash.new(0)
     @total_changesets = 0
     @filtered_changesets = 0
@@ -21,7 +21,7 @@ class QMPRankingGenerator
 
   def process_file(filename)
     puts "Processing changesets from #{filename}..."
-    puts "Filtering changesets from the last #{@days_limit} days (after #{@cutoff_date.strftime('%Y-%m-%d')})"
+    puts "Processing QMP changesets from #{@qmp_start_date.strftime('%Y-%m-%d')} onwards"
 
     File.open(filename, 'r') do |file|
       file.each_line do |line|
@@ -31,44 +31,22 @@ class QMPRankingGenerator
     end
 
     puts "Processed #{@total_changesets} total changesets"
-    puts "Found #{@filtered_changesets} QMP changesets in the last #{@days_limit} days"
+    puts "Found #{@filtered_changesets} QMP changesets since #{@qmp_start_date.strftime('%Y-%m-%d')}"
     puts "Found #{@users.size} unique contributors"
   end
 
   private
 
   def process_changeset(changeset)
-    # Check if changeset has #qmp tag in hashtags field or comment
-    has_qmp_tag = false
+    # QMPchangesetはすでにcollect_qmp_data.rbで#qmpタグと日付フィルタ済み
+    # ここではそのままユーザー別集計のみ実行
+    user = changeset['user']
+    return unless user
     
-    # First check hashtags field (preferred method)
-    if changeset['hashtags']
-      hashtags_value = changeset['hashtags']
-      if hashtags_value.is_a?(Array)
-        has_qmp_tag = hashtags_value.any? { |tag| tag.downcase == '#qmp' }
-      elsif hashtags_value.is_a?(String)
-        has_qmp_tag = hashtags_value.downcase.include?('#qmp')
-      end
-    end
-    
-    # Fallback: check comment field for #qmp tag
-    unless has_qmp_tag
-      comment = changeset['comment']
-      has_qmp_tag = comment&.match?(/#qmp\b/i)
-    end
-    
-    return unless has_qmp_tag
-
-    # Check if changeset is within the time limit
-    if changeset['created_at']
-      created_at = Time.parse(changeset['created_at'])
-      return if created_at < @cutoff_date
-    end
-
     @filtered_changesets += 1
-    user = changeset['user'] || 'unknown'
-    changes = changeset['changes_count'] || changeset['num_changes'] || 0
-    @users[user] += changes
+    
+    size = changeset['changes_count'] || 0
+    @users[user] += size.to_i
   end
 
   public
@@ -104,7 +82,7 @@ class QMPRankingGenerator
     output = {
       meta: {
         generated_at: Time.now.iso8601,
-        days_filtered: @days_limit,
+        qmp_start_date: @qmp_start_date.strftime('%Y-%m-%d'),
         total_contributors: @users.size,
         total_changesets: @filtered_changesets
       },
@@ -148,7 +126,7 @@ class QMPRankingGenerator
 
       **Generated on / 生成日時:** #{now_str}  
       **Planet file timestamp / Planetファイル日時:** #{planet_timestamp}  
-      **Period / 対象期間:** Last #{@days_limit} days / 過去#{@days_limit}日間  
+      **Period / 対象期間:** Since QMP start (2025-05-01) / QMP開始日以降（2025年5月1日〜）  
       **Total Contributors / 総貢献者数:** #{@users.size}  
       **Total QMP Changesets / 総QMPチェンジセット数:** #{@filtered_changesets}
 
@@ -218,10 +196,6 @@ if __FILE__ == $0
   
   OptionParser.new do |opts|
     opts.banner = "Usage: #{$0} [options] input_file"
-    
-    opts.on("-d", "--days DAYS", Integer, "Filter changesets from last N days (default: 30)") do |d|
-      options[:days] = d
-    end
     
     opts.on("-f", "--format FORMAT", String, "Output format: markdown, json, csv (default: markdown)") do |f|
       options[:format] = f

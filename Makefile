@@ -10,7 +10,7 @@ PLANET=data/changesets-latest.osm.bz2
 JSONL=data/changesets.jsonl
 RANKING_MD=docs/index.md
 
-.PHONY: all planet extract ranking clean help test check-deps
+.PHONY: all planet extract ranking clean help test check-deps stream
 
 # Show help / ヘルプ表示
 help:
@@ -24,6 +24,7 @@ help:
 	@echo "  planet     - Download planet file / planetファイルダウンロード"
 	@echo "  extract    - Extract #qmp changesets / #qmpチェンジセット抽出"
 	@echo "  ranking    - Generate ranking / ランキング生成"
+	@echo "  stream     - Direct download→extract pipeline / 直接ダウンロード→抽出パイプライン"
 	@echo "  clean      - Clean generated files / 生成物削除"
 	@echo ""
 	@echo "Configuration / 設定:"
@@ -38,7 +39,7 @@ planet:
 		if command -v wget >/dev/null 2>&1; then \
 			wget -O $(PLANET) https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2; \
 		elif command -v curl >/dev/null 2>&1; then \
-			curl -o $(PLANET) https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2; \
+			curl -L -o $(PLANET) https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2; \
 		else \
 			echo "❌ Error: Neither wget nor curl found. Please install one of them."; \
 			exit 1; \
@@ -77,6 +78,28 @@ ranking: $(JSONL)
 clean:
 	@echo "🧹 Cleaning generated files ..."
 	rm -f $(JSONL) $(RANKING_MD)
+
+# Stream processing: download, decompress, and extract in one pipeline
+# ストリーム処理：ダウンロード・解凍・抽出を一つのパイプラインで実行
+stream:
+	@echo "🚀 Starting stream processing: download → decompress → extract ..."
+	@echo "⚠️  This will download ~7.6GB and process directly without saving planet file"
+	@echo "⚠️  これにより約7.6GBをダウンロードし、planetファイルを保存せずに直接処理します"
+	@echo "💡 This is faster and saves disk space compared to 'make all'"
+	@echo "💡 'make all'より高速で、ディスク容量を節約できます"
+	@echo ""
+	@if command -v curl >/dev/null 2>&1; then \
+		echo "🌍 Downloading and processing changesets-latest.osm.bz2 via curl..."; \
+		curl -L -# https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2 | bunzip2 | ruby scripts/collect_qmp_data.rb > $(JSONL); \
+	elif command -v wget >/dev/null 2>&1; then \
+		echo "🌍 Downloading and processing changesets-latest.osm.bz2 via wget..."; \
+		wget --progress=bar -O - https://planet.openstreetmap.org/planet/changesets-latest.osm.bz2 | bunzip2 | ruby scripts/collect_qmp_data.rb > $(JSONL); \
+	else \
+		echo "❌ Error: Neither curl nor wget found. Please install one of them."; \
+		exit 1; \
+	fi
+	@echo "✅ Stream processing completed. Results saved to $(JSONL)"
+	@echo "📊 Generated JSONL contains $$(wc -l < $(JSONL)) QMP changesets"
 
 # All-in-one: download, extract, and generate ranking
 # 一括実行：ダウンロード・抽出・ランキング生成

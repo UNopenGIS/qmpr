@@ -47,12 +47,12 @@ reader.each do |node|
   # XMLパース失敗時のスキップ
   next unless cs
   
-  # 進捗表示（1000件ごと）
+  # 進捗表示（1000件ごと）- streamモードでは無効化
   processed_count += 1
-  if processed_count % 1000 == 0
-    $stderr.print "Processed: #{processed_count} changesets, Found #qmp: #{qmp_found_count}\r"
-    $stderr.flush
-  end
+  # if processed_count % 1000 == 0
+  #   $stderr.print "Processed: #{processed_count} changesets, Found #qmp: #{qmp_found_count}\r"
+  #   $stderr.flush
+  # end
   
   # 日付フィルタ: 2025年5月以降のchangesetのみ処理
   created_at = cs['created_at']
